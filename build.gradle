@@ -1,14 +1,26 @@
 apply plugin: 'groovy'
+apply plugin: 'scala'
+apply plugin: 'idea'
 apply plugin: 'maven'
+
+ext {
+  versions = [
+    scala: '2.10.3',
+    scala_base: '2.10',
+    scalaz: '7.0.6'
+  ]
+}
 
 repositories {
   mavenCentral()
 }
 
-dependencies {
-  compile 'org.codehaus.groovy:groovy-all:2.4.5'
-  testCompile 'junit:junit:4.12'
-}
+//dependencies {
+////  compile "org.scala-lang:scala-library:${versions.scala}"
+////  compile "org.scalaz:scalaz-core_${versions.scala_base}:${versions.scalaz}"
+////  compile 'org.codehaus.groovy:groovy-all:2.4.5'
+//  testCompile 'junit:junit:4.12'
+//}
 group 'com.baar.groovy'
 version '1.0-SNAPSHOT'
 
@@ -23,13 +35,13 @@ repositories {
 
 dependencies {
   // mandatory dependencies for using Spock
-  compile "org.codehaus.groovy:groovy-all:2.4.13"
+  compile "org.codehaus.groovy:groovy-all:2.4.5"
 
   // testing out fp libs
 //  compile "fnz:fnz:1.0.5"
   compile "org.codehaus.gpars:gpars:1.2.0"
 
-//  compile "org.functionaljava:functionaljava:4.1"
+  compile "org.functionaljava:functionaljava:4.7"
 //  compile "com.github.mperry:functionalgroovy-main:0.5.1-SNAPSHOT"
 
   // optional dependencies for using Spock

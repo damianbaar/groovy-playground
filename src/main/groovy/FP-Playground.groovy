@@ -1,5 +1,14 @@
+import fj.data.Array
+import fj.data.Either
+import fj.data.optic.Lens
 import groovy.transform.Immutable
-import groovyx.gpars.GParsPool
+
+import static fj.Show.intShow
+import static fj.Show.arrayShow
+import static fj.data.Array.array
+
+import static groovyx.gpars.GParsPool.withPool
+import static Thread.sleep
 
 import static groovyx.gpars.actor.Actors.actor
 
@@ -183,9 +192,71 @@ def console = actor {
 
 [decryptor, console]*.join()
 
-def a = {->1}
+def a = {->
+  sleep(1000)
+  1
+}
+
 def b = {->2}
 def c = {->3}
 
-def result2 = GParsPool.withPool { [a, b, c].collectParallel {f -> f()}}
+def result2 = withPool { [a, b, c].collectParallel {f -> f()}}
 println(result2)
+
+// Destructuring
+def (passed, failed) = [49, 58, 76, 82, 88, 90].split{it > 60}
+println("""passed: ${passed}, failed: ${failed}""")
+
+def (ele1,ele2,ele4)= [1,2,3]
+println("""${ele1}${ele2}""")
+
+// string to enum
+enum State {
+  up,
+  down
+}
+
+def testEnum = {State s ->
+  switch (s) {
+    case State.up:
+      return 'up'
+    case State.down:
+      return 'down'
+  }
+}
+println(testEnum(State.up))
+
+//
+interface Greeter {
+  void greet()
+}
+def greeter = { println 'Hello, Groovy!' } as Greeter // Greeter is known statically
+greeter.greet()
+
+//def operations = {
+//  declare 5
+//  sum 4
+//  divide 3
+//  print
+//}
+//
+//operations()
+Either<String, String> nan = Either.right("test")
+//def error = nan.bind({x -> Either.left("error")})
+//println("""either, ${error}""")
+
+Array<Integer> arrayMonad = array(10, 20)
+
+def arr = arrayMonad
+  .bind({x-> array(x, 0, 0)})
+  .filter({it > 1})
+
+arrayShow intShow println arr
+
+// Lenses
+
+//Lens<Car, String> carMakeLens = Lens
+//  .lens({c -> c.make}, {s, c -> new Car(s, c.make)})
+//
+//Lens<Car, String> carBrandLens = Lens
+//  .lens({p -> p.brand}, {a, p -> new Car(p.brand, a)})
