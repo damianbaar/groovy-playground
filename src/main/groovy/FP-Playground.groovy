@@ -1,6 +1,4 @@
-import groovy.transform.Canonical
-import groovy.transform.TupleConstructor
-import jdk.nashorn.internal.ir.annotations.Immutable
+import groovy.transform.Immutable
 
 def closure = { -> }
 
@@ -61,6 +59,7 @@ void 'Declaring and executing a closure'() {
     result == 2
 }
 
+// CURRYING
 def fn1 = { a, b, c -> a + b + c }
 
 def fn2 = fn1.curry(1)
@@ -69,6 +68,7 @@ def fn3 = fn1.curry(1, 2)
 fn2(4, 5) == 10
 fn3(3) == 6
 
+// MAPPING
 def expendables = ['Stallone', 'Staham', 'Couture']
 def upperCaseVersion = expendables.collect { name -> name.toUpperCase() }
 
@@ -88,12 +88,11 @@ println(result)
 def obj = [a: '1']
 println obj.a
 
-// Pattern matching
-@Canonical
-@Immutable
+// Pattern matching + Immutable
+@Immutable(copyWith=true)
 class Person {
-    public String name
-    public Integer age
+    String name
+    Integer age
 
     static Person of(String name, Integer age) {
         new Person(name, age)
@@ -101,7 +100,8 @@ class Person {
 }
 
 def p = Person.of('carl', 22)
-def pc1 = Person.name = "test"
+def pc1 = p.copyWith([name: 'john'])
+
 println(Person.of('carl', 22) == p)
 println(pc1)
 
@@ -116,3 +116,59 @@ Closure<String> example1 = {Person person ->
 }
 
 println(({x -> x + x} << toUpperCase << example1)(Person.of('carl', 22)))
+
+//
+class Car {
+    String make
+    String model
+}
+
+def cars = [
+    new Car(make:'bmw', model:'428')
+]
+// agg make
+println(cars*.make)
+
+// extending map / object
+def m1 = [c:1, d:2]
+def map = [a:1, b:2, *:m1, d:3]
+println(map)
+
+def items = [4, 5]
+def list = [1, 2, 3, *items]
+println(list)
+
+// to dive in
+// getAt / putAt
+
+// elvis operator
+def displayName = m1.e ?: "#1: E is not defined" // eq sth.a ? sth.a : sthElse
+println(displayName)
+
+// uuu nice
+Map<String, Closure<String>> m2 = [
+  c: {  String arg ->
+        println(arg)
+        return arg
+     }
+]
+
+print("""
+  safe access to ${m2.c('test')},
+  has key ${m2.containsKey('c')}
+""")
+
+// APPLY args on Closure
+int testFn(int x, int y, int z) { x * y * z }
+Closure<Integer> testFn2 = {Integer x, Integer y, Integer z -> x * y * z}
+
+def fn = this.&testFn
+def args = [4,5]
+
+println(fn(*args, 6)) // better type interference
+println(testFn([*args, 6]))
+println(testFn2.curry(10)(*args))
+
+//
+// todo try spock
+
