@@ -1,4 +1,7 @@
 import groovy.transform.Immutable
+import groovyx.gpars.GParsPool
+
+import static groovyx.gpars.actor.Actors.actor
 
 def closure = { -> }
 
@@ -34,9 +37,11 @@ class Sth implements Functor<String> {
 
     @Override
     Sth fmap(Closure<String> body) {
-        return Sth.of(body(this.value))
+        return of(body(this.value))
     }
 }
+
+// MAPPING
 
 def t = Sth
   .of("1000")
@@ -45,19 +50,6 @@ def t = Sth
   .unfold()
 
 println(t)
-
-void 'Declaring and executing a closure'() {
-    given: 'a variable and a closure'
-    def x = 1
-    def c = { ->
-        def y = 1
-        x + y
-    }
-    when: 'executing the closure'
-    def result = c()
-    then: 'the value should be the expected'
-    result == 2
-}
 
 // CURRYING
 def fn1 = { a, b, c -> a + b + c }
@@ -126,7 +118,8 @@ class Car {
 def cars = [
     new Car(make:'bmw', model:'428')
 ]
-// agg make
+
+// Get all obj.make = list.map(property('make'))
 println(cars*.make)
 
 // extending map / object
@@ -169,6 +162,30 @@ println(fn(*args, 6)) // better type interference
 println(testFn([*args, 6]))
 println(testFn2.curry(10)(*args))
 
-//
-// todo try spock
+// Concurrency - GPars
 
+def decryptor = actor {
+  loop {
+    react { message ->
+      if (message instanceof String) reply message.reverse()
+      else stop()
+    }
+  }
+}
+
+def console = actor {
+  decryptor.send 'lellarap si yvoorG'
+  react {
+    println 'Decrypted message: ' + it
+    decryptor.send false
+  }
+}
+
+[decryptor, console]*.join()
+
+def a = {->1}
+def b = {->2}
+def c = {->3}
+
+def result2 = GParsPool.withPool { [a, b, c].collectParallel {f -> f()}}
+println(result2)
