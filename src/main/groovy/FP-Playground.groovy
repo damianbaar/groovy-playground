@@ -89,14 +89,21 @@ println(result)
 def obj = [a: '1']
 println obj.a
 
+@Immutable(copyWith=true)
+class Address {
+  String street
+  Integer zip
+}
+
 // Pattern matching + Immutable
 @Immutable(copyWith=true)
 class Person {
     String name
     Integer age
+    Address address = new Address()
 
     static Person of(String name, Integer age) {
-        new Person(name, age)
+      new Person(name: name, age: age)
     }
 }
 
@@ -253,10 +260,62 @@ def arr = arrayMonad
 
 arrayShow intShow println arr
 
-// Lenses
+// Lenses with Immutable
 
-//Lens<Car, String> carMakeLens = Lens
-//  .lens({c -> c.make}, {s, c -> new Car(s, c.make)})
+//Lens<Person, String> personNameLens = Lens.lens(
+//  {pe -> pe.name},
+////  {String s, Person pe -> pe.copyWith([name: s])}
+//  {s, pe -> new Person("test", 32)}
+//)
 //
-//Lens<Car, String> carBrandLens = Lens
-//  .lens({p -> p.brand}, {a, p -> new Car(p.brand, a)})
+//def oldPerson = new Person('D.', 32)
+//println(personNameLens.get(oldPerson))
+
+// Lens implementation
+
+@Immutable
+class Lens {
+  Closure getter
+  Closure setter
+
+  def call(a) { getter(a) }
+
+  def call(a, b) { setter(a, b) }
+
+  Lens leftShift(Lens other) {
+    new Lens(
+      { a -> get(other.getter(a)) },
+      { a, b -> other.setter(a, setter(other.getter(a), b)) }
+    )
+  }
+}
+
+def d = Person.of('D', 32)
+
+// Lens for setting address for a person
+Lens personName = new Lens(
+  { it.name },
+  { old, val -> old.copyWith([name: val]) }
+)
+
+Lens personAddress  = new Lens(
+  { it.address },
+  { Person pe, Address adr -> pe.copyWith([address: adr]) }
+)
+
+Lens addressZipcode = new Lens(
+  { it.zip },
+  { Address adr, z -> adr.copyWith([zip: z]) }
+)
+
+Lens personZipcodeLens = addressZipcode << personAddress
+
+println(personName(d))
+
+def newPerson = personName(d, 'D!')
+println(newPerson)
+
+def personWithNewZipCode = personZipcodeLens(newPerson, 100)
+println(personWithNewZipCode)
+
+
