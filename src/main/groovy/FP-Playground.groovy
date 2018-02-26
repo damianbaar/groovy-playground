@@ -129,10 +129,24 @@ println(({x -> x + x} << toUpperCase << example1)(Person.of('carl', 22)))
 class Car {
     String make
     String model
+
+  def show() {
+    println("has to be with &")
+  }
+
+  static showS(String test) {
+    println("""with partial application ${test}""")
+  }
 }
 
+def methodReference = new Car().&show
+def lazyWithArgs = Car.&showS.curry("test")
+
+methodReference()
+lazyWithArgs()
+
 def cars = [
-    new Car(make:'bmw', model:'428')
+  new Car(make:'bmw', model:'428')
 ]
 
 // Get all obj.make = list.map(property('make'))
